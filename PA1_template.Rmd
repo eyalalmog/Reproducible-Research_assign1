@@ -1,0 +1,88 @@
+---
+title: "Assignment 1"
+output: html_document
+---
+
+
+```{r loadData }
+library(dplyr)
+library(data.table)
+
+## Load raw data from csv file
+RawActivityData <- read.csv("C:\\R\\reproducable\\activity.csv")
+## Isolate complete data from missing data 
+activityData <- RawActivityData[ with (RawActivityData, { !(is.na(steps)) } ), ]
+activityData.missing <- RawActivityData[ with (RawActivityData, { (is.na(steps)) } ), ]
+
+
+
+
+```
+
+```{r}
+# The following code group steps per day so we can calculate the mean and the median
+
+TotStepsPerDay <- group_by(activityData , date)
+
+steps_by_day <- summarise(TotStepsPerDay, total = sum(steps))
+
+hist(steps_by_day$total)
+summary(steps_by_day$total)
+
+```
+
+
+
+
+```{r}
+# the following code plot the steps for each time interval
+steps_by_interval <- aggregate(steps ~ interval, activityData, mean)
+
+# create a time series plot 
+plot(steps_by_interval$interval, steps_by_interval$steps, type='l', 
+     main="Average number of steps per Interval ", xlab="Interval", 
+     ylab="Average number of steps")
+
+# find row with max of steps
+max_steps_row <- which.max(steps_by_interval$steps)
+
+# The interval with the max value is
+steps_by_interval[max_steps_row, ]
+
+## the interval with the highest mean ssteps is 835 and teh steps taken are 206
+
+```
+
+####################################################################
+##                 Impuding Missing values
+#####################################################################
+
+
+
+```{r}
+##Calculate and report the total number of missing values in the dataset
+sum(is.na(RawActivityData))
+```
+
+```{r}
+#Devise a strategy for filling in all of the missing values in the dataset.
+# For each missing value, we will be using the average value for this interval steps 
+
+activityData2 <- activityData.missing
+activityData2[, 1] <- steps_by_interval$step
+
+
+#Create a new dataset that is equal to the original dataset but with the missing 
+
+activityDataCorrected <- rbind(activityData,activityData2)
+
+
+
+TotStepsPerDayCorrected <- group_by(activityDataCorrected , date)
+steps_by_day_Corrected <- summarise(TotStepsPerDayCorrected, total = sum(steps))
+hist(steps_by_day_Corrected$total)
+summary(steps_by_day_Corrected$total)
+
+```
+
+
